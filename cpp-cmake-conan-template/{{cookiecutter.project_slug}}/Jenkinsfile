@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+
+    environment {
+        CONAN_HOME = "${env.WORKSPACE}/.conan"
+    }
+
+    stages {
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                    pip install conan
+                    conan --version
+                '''
+            }
+        }
+
+        stage('Conan Install') {
+            steps {
+                sh '''
+                    mkdir -p build
+                    conan install . --output-folder=build --build=missing
+                '''
+            }
+        }
+
+        stage('CMake Configure') {
+            steps {
+                sh '''
+                    cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
+                '''
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'cmake --build build'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'cd build && ctest --output-on-failure'
+            }
+        }
+    }
+}
