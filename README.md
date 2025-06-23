@@ -20,7 +20,7 @@ production-ready CPP projects quickly.
 - [ ] Support to Google test.
 - [ ] Building up a Docker container for a dev environment.
 - [x] Jenkins Declarative pipeline.
-- [ ] GitHub Actions.
+- [x] GitHub Actions.
 - [ ] Static Code Analysis using SonarQube.
 - [ ] Artifcatory Workflow.
 - [ ] Monitoring & Observability using ELK and Grafana.
@@ -29,7 +29,7 @@ production-ready CPP projects quickly.
 ## NOTE: 
 - Please note that this repository is under active development and the features that are currently available are marked in README. More features will be added soon.
 
-
+## Renovate
 - I am using Renovate in my template so all the dependencies will be updated to the latest versions available in the market for public use. I suggest everyone using this template could also use renovate in their projects so that their tools remain updated as well.
   - Steps to use Renovate: 
     - Go to: 👉 https://github.com/apps/renovate
@@ -41,3 +41,25 @@ production-ready CPP projects quickly.
     - These updates can be done to docker base images in your dockerfile(If present).
     - Actions version in GitHub Actions(example: @v2, @v3 etc.)
     - If there's any requirements.txt file it can handle those or any pip files in python projects.
+
+
+## STATIC CODE ANALYSIS WITH SonarQube:
+Static Analysis with SonarQube
+
+This template includes built-in SonarQube support.
+
+To use it:
+1. Create a free [SonarCloud](https://sonarcloud.io) or self-hosted SonarQube account
+2. Generate a token and save it as `SONAR_TOKEN` in:
+      - Steps to generate a token:
+        - After signing into your sonarcloud.io. Create an organisation name it according to your convenience.
+        - Then go to your profile in top right. Go to Security tab and click on Genrate Tokens by providing any name and the click on generate. Copy the Generated token somewhere safe as you will never find it again.
+        - Now use this token to add it in your GitHub secrets and Jenkins credential manager. 
+      - Steps to Add a secret in GitHub:
+        - Navigate to: Settings → Secrets and variables → Actions
+        - Click New repository secret
+        - Name: SONAR_TOKEN
+        - Value: paste the token you copied from SonarCloud
+        - Click Add secret
+      - Steps to Add a secret in Jenkins:
+3. When the CI runs, your code will be analyzed and results will be available on your Sonar dashboard.

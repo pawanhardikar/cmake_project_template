@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build, Test, and Analyze
 
 on:
   push:
@@ -9,17 +9,36 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y cmake g++ ninja-build
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ ninja-build unzip wget
 
-      - name: Configure
-        run: cmake -S . -B build -G Ninja
+      - name: Download SonarQube tools
+        run: |
+          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+          unzip sonar-scanner-cli-*.zip
+          echo "$PWD/sonar-scanner-*/bin" >> $GITHUB_PATH
 
-      - name: Build
-        run: cmake --build build
+          wget https://binaries.sonarsource.com/Distribution/sonar-build-wrapper/sonar-build-wrapper-linux-x86.zip
+          unzip sonar-build-wrapper-*.zip
 
-      - name: Test
+      - name: Build project with build-wrapper
+        run: |
+          ./sonar-build-wrapper*/build-wrapper-linux-x86/build-wrapper-linux-x86-64 --out-dir bw-output cmake -S . -B build -G Ninja && cmake --build build
+
+      - name: Run tests
         run: cd build && ctest --output-on-failure
+
+      - name: Run SonarQube analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner \
+            -Dsonar.projectBaseDir=. \
+            -Dsonar.login=$SONAR_TOKEN

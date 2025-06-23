@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         CONAN_HOME = "${env.WORKSPACE}/.conan"
+        SONAR_TOKEN = credentials('SONAR_TOKEN')  // Jenkins Secret Text
     }
 
     stages {
@@ -11,6 +12,24 @@ pipeline {
                 sh '''
                     pip install conan
                     conan --version
+
+                    # Install CMake + wget + unzip if not present
+                    sudo apt-get update
+                    sudo apt-get install -y cmake wget unzip
+                '''
+            }
+        }
+
+        stage('Download SonarQube Tools') {
+            steps {
+                sh '''
+                    # Download SonarScanner CLI
+                    wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+                    unzip sonar-scanner-cli-*.zip
+
+                    # Download build-wrapper for C++
+                    wget https://binaries.sonarsource.com/Distribution/sonar-build-wrapper/sonar-build-wrapper-linux-x86.zip
+                    unzip sonar-build-wrapper-*.zip
                 '''
             }
         }
@@ -24,23 +43,30 @@ pipeline {
             }
         }
 
-        stage('CMake Configure') {
+        stage('CMake Configure and Build with Wrapper') {
             steps {
                 sh '''
-                    cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
+                    ./sonar-build-wrapper*/build-wrapper-linux-x86/build-wrapper-linux-x86-64 \
+                        --out-dir bw-output \
+                        cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake && \
+                    cmake --build build
                 '''
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'cmake --build build'
             }
         }
 
         stage('Test') {
             steps {
                 sh 'cd build && ctest --output-on-failure'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                sh '''
+                    ./sonar-scanner-*/bin/sonar-scanner \
+                        -Dsonar.projectBaseDir=. \
+                        -Dsonar.login=$SONAR_TOKEN
+                '''
             }
         }
     }
