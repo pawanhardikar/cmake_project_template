@@ -21,7 +21,7 @@ production-ready CPP projects quickly.
 - [ ] Building up a Docker container for a dev environment.
 - [x] Jenkins Declarative pipeline.
 - [x] GitHub Actions.
-- [ ] Static Code Analysis using SonarQube.
+- [x] Static Code Analysis using SonarQube.
 - [ ] Artifcatory Workflow.
 - [ ] Monitoring & Observability using ELK and Grafana.
 - [ ] Documentation generation using sphinx.
